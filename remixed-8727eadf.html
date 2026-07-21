@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>دار السكّ — ابنِ عملتك الرقمية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============ Design tokens: "The Mint" — banknote paper + engraved ink ============ */
+  :root{
+    --paper:#e7e4d8; --paper-2:#efece2; --panel:#f4f2ea; --panel-2:#eeebe0;
+    --ink:#20241f; --ink-soft:#4d5147; --muted:#7f8071;
+    --line:#cec9b6; --line-strong:#b7b29b;
+    --accent:#c6912e; --accent-d:#8a6216; --accent-l:#e8cd8f;
+    --up:#2f6b5e; --down:#a6412e;
+    --radius:14px;
+    --shadow:0 1px 0 rgba(255,255,255,.6), 0 2px 14px rgba(45,44,32,.08);
+    --shadow-lg:0 1px 0 rgba(255,255,255,.6), 0 10px 34px rgba(45,44,32,.14);
+    --serif:'Amiri','Times New Roman',serif;
+    --sans:'Tajawal',system-ui,'Segoe UI',Tahoma,Arial,sans-serif;
+    --mono:'IBM Plex Mono','Courier New',monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--sans);
+    color:var(--ink);
+    background:radial-gradient(120% 80% at 50% -10%, #f4f1e8 0%, #e9e6da 55%, #e0dccd 100%);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.55;
+  }
+  /* faint engraved guilloché overlay */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.05;
+    background-image:
+      repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 9px),
+      repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 9px);
+  }
+  .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 16px 120px}
+
+  a{color:var(--accent-d)}
+  .mono{font-family:var(--mono); direction:ltr; unicode-bidi:isolate; letter-spacing:.2px}
+  .hidden{display:none !important}
+
+  /* ============ Top bar ============ */
+  .topbar{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:12px 4px; margin-bottom:6px;
+    background:linear-gradient(180deg, rgba(233,230,218,.96), rgba(233,230,218,.82));
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:12px; min-width:0}
+  .header-coin{width:46px; height:46px; flex:none}
+  .header-coin svg{width:100%; height:100%; display:block}
+  .brand-name{font-family:var(--serif); font-weight:700; font-size:1.32rem; line-height:1.1; letter-spacing:.3px}
+  .brand-sub{font-size:.78rem; color:var(--muted)}
+  .price-pill{
+    text-align:center; padding:6px 12px; border:1px solid var(--line-strong); border-radius:12px;
+    background:var(--panel); box-shadow:var(--shadow); min-width:118px;
+  }
+  .price-pill .pp-price{font-family:var(--mono); font-weight:600; font-size:1.02rem}
+  .price-pill .pp-chg{font-family:var(--mono); font-size:.76rem; font-weight:500}
+  .up-txt{color:var(--up)} .down-txt{color:var(--down)}
+
+  /* ============ Tabs ============ */
+  .tabs{
+    display:flex; gap:2px; overflow-x:auto; scrollbar-width:none;
+    border-bottom:1.5px solid var(--line-strong); margin-bottom:18px; padding-bottom:0;
+  }
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    appearance:none; background:none; border:none; cursor:pointer; white-space:nowrap;
+    font-family:var(--sans); font-size:.98rem; font-weight:600; color:var(--muted);
+    padding:12px 16px 10px; border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
+    transition:color .18s;
+  }
+  .tab:hover{color:var(--ink-soft)}
+  .tab.active{color:var(--accent-d); border-bottom-color:var(--accent)}
+  .tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+
+  /* ============ Panels ============ */
+  .panel{display:none; animation:fade .35s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px;
+  }
+  .card + .card{margin-top:16px}
+  .eyebrow{
+    font-family:var(--mono); font-size:.72rem; letter-spacing:2px; text-transform:uppercase;
+    color:var(--accent-d); margin:0 0 4px;
+  }
+  h2.sec-title{font-family:var(--serif); font-weight:700; font-size:1.5rem; margin:0 0 2px}
+  .sec-note{color:var(--ink-soft); font-size:.92rem; margin:0 0 14px}
+
+  /* ============ Create ============ */
+  .create-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start}
+  @media(max-width:760px){.create-grid{grid-template-columns:1fr}}
+  .coin-stage{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:22px; text-align:center;
+    background:
+      radial-gradient(70% 55% at 50% 42%, rgba(255,255,255,.5), transparent 70%),
+      var(--panel-2);
+    border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+  }
+  .coin-big{width:min(72vw,300px); height:min(72vw,300px); filter:drop-shadow(0 14px 26px rgba(40,38,26,.28))}
+  .coin-big svg{width:100%; height:100%; display:block}
+  .stamp{animation:stamp .5s cubic-bezier(.2,1.3,.4,1)}
+  @keyframes stamp{0%{transform:scale(.4) rotate(-8deg); opacity:0} 60%{transform:scale(1.06)} 100%{transform:scale(1)}}
+  .coin-caption{margin-top:14px; font-family:var(--serif); font-size:1.15rem; font-weight:700}
+  .coin-subcap{color:var(--muted); font-size:.82rem; font-family:var(--mono)}
+
+  .field{margin-bottom:14px}
+  .field label{display:block; font-size:.85rem; font-weight:600; color:var(--ink-soft); margin-bottom:6px}
+  .field .hint{font-weight:400; color:var(--muted); font-size:.78rem}
+  input[type=text], input[type=number]{
+    width:100%; font-family:var(--sans); font-size:1rem; color:var(--ink);
+    padding:11px 12px; border:1px solid var(--line-strong); border-radius:10px;
+    background:#fbfaf4; transition:border-color .15s, box-shadow .15s;
+  }
+  input.num{font-family:var(--mono); direction:ltr; text-align:left}
+  input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-l)}
+
+  .glyph-grid{display:grid; grid-template-columns:repeat(8,1fr); gap:6px}
+  @media(max-width:420px){.glyph-grid{grid-template-columns:repeat(6,1fr)}}
+  .glyph-btn{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    font-size:1.25rem; cursor:pointer; background:#fbfaf4; border:1px solid var(--line);
+    border-radius:9px; transition:transform .1s, border-color .15s, background .15s;
+  }
+  .glyph-btn:hover{transform:translateY(-1px); border-color:var(--line-strong)}
+  .glyph-btn.sel{border-color:var(--accent); background:var(--accent-l); box-shadow:0 0 0 2px var(--accent-l)}
+
+  .swatches{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  .swatch{
+    width:30px; height:30px; border-radius:50%; cursor:pointer;
+    border:2px solid rgba(0,0,0,.12); box-shadow:inset 0 0 0 2px rgba(255,255,255,.5);
+    transition:transform .1s;
+  }
+  .swatch:hover{transform:scale(1.08)}
+  .swatch.sel{outline:2px solid var(--ink); outline-offset:2px}
+  .swatch.custom{background:conic-gradient(from 0deg,#e33,#ee3,#3e6,#39e,#93e,#e33); display:flex; align-items:center; justify-content:center}
+  .swatch.custom input{opacity:0; width:100%; height:100%; cursor:pointer}
+
+  .btn{
+    appearance:none; cursor:pointer; font-family:var(--sans); font-weight:700; font-size:1rem;
+    padding:13px 20px; border-radius:11px; border:1px solid transparent; transition:transform .08s, filter .15s, background .15s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+  .btn-primary{
+    color:#2a2306;
+    background:linear-gradient(180deg, var(--accent-l), var(--accent));
+    border-color:var(--accent-d); box-shadow:var(--shadow); width:100%;
+    text-shadow:0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn-primary:hover{filter:brightness(1.04)}
+  .btn-ghost{background:#fbfaf4; border-color:var(--line-strong); color:var(--ink)}
+  .btn-ghost:hover{background:#fff}
+  .btn-up{background:var(--up); color:#f2f7f0; border-color:#255449}
+  .btn-down{background:var(--down); color:#fbf1ee; border-color:#83321f}
+  .btn-sm{padding:8px 12px; font-size:.86rem; border-radius:9px}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap}
+
+  /* ============ Gate (before minting) ============ */
+  .gate{display:none; flex-direction:column; align-items:center; text-align:center; gap:12px; padding:38px 18px}
+  body:not(.minted) .needs-coin{display:none}
+  body:not(.minted) .gate{display:flex}
+  .gate .g-emoji{font-size:2.4rem}
+  .gate p{color:var(--ink-soft); margin:0; max-width:34ch}
+
+  /* ============ Stats ============ */
+  .stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  @media(max-width:560px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel-2); border:1px solid var(--line); border-radius:11px; padding:11px 12px}
+  .stat .s-label{font-size:.74rem; color:var(--muted); margin-bottom:3px}
+  .stat .s-value{font-family:var(--mono); font-weight:600; font-size:1.02rem; direction:ltr; text-align:right}
+
+  /* ============ Chart ============ */
+  .chart-wrap{position:relative; background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:8px}
+  #priceChart{width:100%; height:230px; display:block}
+  .pulse{
+    min-height:22px; margin-top:10px; font-size:.86rem; color:var(--ink-soft);
+    font-family:var(--mono); direction:rtl; transition:opacity .4s; opacity:0;
+  }
+  .pulse.show{opacity:1}
+
+  /* trade controls */
+  .trade-controls{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; margin-top:14px}
+  @media(max-width:560px){.trade-controls{grid-template-columns:1fr}}
+  .unit-toggle{display:flex; border:1px solid var(--line-strong); border-radius:9px; overflow:hidden}
+  .unit-toggle button{appearance:none; background:#fbfaf4; border:none; cursor:pointer; padding:7px 12px; font-family:var(--sans); font-weight:600; font-size:.82rem; color:var(--muted)}
+  .unit-toggle button.on{background:var(--accent-l); color:var(--accent-d)}
+
+  /* ============ Mining ============ */
+  .diff-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px}
+  .diff-pills{display:flex; gap:6px}
+  .diff-pill{appearance:none; cursor:pointer; width:38px; height:38px; border-radius:9px; border:1px solid var(--line-strong); background:#fbfaf4; font-family:var(--mono); font-weight:600; font-size:1rem}
+  .diff-pill.on{background:var(--accent-l); border-color:var(--accent); color:var(--accent-d)}
+  .block-preview{background:#1d201b; color:#d7d3c4; border-radius:12px; padding:14px; font-family:var(--mono); direction:ltr; font-size:.82rem; overflow-x:auto}
+  .block-preview .k{color:#9aa08c}
+  .block-preview .target{color:var(--accent-l)}
+  .hash-live{color:#e8cd8f; word-break:break-all}
+  .hash-good{color:#7fd0a6; font-weight:600}
+  .mine-readout{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
+  @media(max-width:560px){.mine-readout{grid-template-columns:1fr 1fr}}
+  .mine-msg{margin-top:12px; font-size:.9rem; min-height:20px}
+
+  /* ============ Blockchain ============ */
+  .chain-scroll{display:flex; gap:0; overflow-x:auto; padding:6px 2px 14px; scrollbar-width:thin}
+  .block-card{
+    flex:0 0 210px; background:var(--panel-2); border:1.5px solid var(--line-strong);
+    border-radius:12px; padding:12px; position:relative;
+  }
+  .block-card.invalid{border-color:var(--down); background:#f6e9e5}
+  .block-link{flex:0 0 26px; display:flex; align-items:center; justify-content:center; color:var(--line-strong); font-size:1.2rem}
+  .block-link.broken{color:var(--down)}
+  .bc-idx{font-family:var(--serif); font-weight:700; font-size:1.05rem; display:flex; justify-content:space-between; align-items:center}
+  .bc-badge{font-size:.68rem; font-family:var(--mono); padding:2px 7px; border-radius:20px; background:var(--up); color:#eef6f2}
+  .bc-badge.bad{background:var(--down); color:#fbeee9}
+  .bc-row{margin-top:8px; font-size:.72rem}
+  .bc-row .kk{color:var(--muted)}
+  .bc-hash{font-family:var(--mono); direction:ltr; font-size:.72rem; word-break:break-all; color:var(--ink-soft)}
+  .bc-hash.self{color:var(--accent-d); font-weight:500}
+  .bc-data{width:100%; font-family:var(--sans); font-size:.82rem; margin-top:8px; padding:7px 8px; border:1px solid var(--line-strong); border-radius:8px; background:#fbfaf4}
+  .bc-data:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-l)}
+
+  /* ============ Learn ============ */
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel)}
+  .acc + .acc{margin-top:10px}
+  .acc-head{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:right; cursor:pointer;
+    appearance:none; background:none; border:none; padding:15px 16px; font-family:var(--sans);
+    font-size:1.05rem; font-weight:700; color:var(--ink);
+  }
+  .acc-head .a-ico{font-size:1.3rem; flex:none}
+  .acc-head .a-arrow{margin-inline-start:auto; color:var(--muted); transition:transform .25s}
+  .acc.open .a-arrow{transform:rotate(90deg)}
+  .acc-body{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc-body .inner{padding:0 16px 16px; color:var(--ink-soft); font-size:.95rem}
+  .acc-body .inner p{margin:0 0 8px}
+  .acc-body .inner strong{color:var(--ink)}
+
+  .foot{text-align:center; color:var(--muted); font-size:.78rem; margin-top:26px; font-family:var(--mono)}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none !important; transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <div id="headerCoin" class="header-coin"></div>
+      <div>
+        <div id="hdrName" class="brand-name">دار السكّ</div>
+        <div id="hdrTicker" class="brand-sub">اصنع عملتك الرقمية</div>
+      </div>
+    </div>
+    <div id="hdrPrice" class="price-pill hidden">
+      <div class="pp-price mono" id="hdrPriceVal" dir="ltr">$0.00</div>
+      <div class="pp-chg mono" id="hdrPriceChg" dir="ltr">0.00%</div>
+    </div>
+  </header>
+
+  <!-- ===== Tabs ===== -->
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="create" role="tab">إنشاء</button>
+    <button class="tab" data-tab="mine" role="tab">تعدين</button>
+    <button class="tab" data-tab="chain" role="tab">السلسلة</button>
+    <button class="tab" data-tab="trade" role="tab">التداول</button>
+    <button class="tab" data-tab="learn" role="tab">تعلّم</button>
+  </nav>
+
+  <!-- ===== CREATE ===== -->
+  <section id="tab-create" class="panel active">
+    <p class="eyebrow">الخطوة الأولى</p>
+    <h2 class="sec-title">اصنع عملتك</h2>
+    <p class="sec-note">اختر الاسم والرمز والشعار واللون. المعدن يتشكّل أمامك مباشرة. عندما تكون جاهزًا، اضغط «اسكك العملة» لتبدأ.</p>
+
+    <div class="create-grid">
+      <!-- live coin -->
+      <div class="coin-stage">
+        <div id="coinBig" class="coin-big"></div>
+        <div id="coinCaption" class="coin-caption">عملتك</div>
+        <div id="coinSubcap" class="coin-subcap" dir="ltr">TICKER · $0.00</div>
+      </div>
+
+      <!-- form -->
+      <div class="card">
+        <div class="field">
+          <label for="fName">اسم العملة</label>
+          <input type="text" id="fName" maxlength="22" value="عملة الذهب" placeholder="مثال: عملة الذهب">
+        </div>
+        <div class="field">
+          <label for="fTicker">الرمز <span class="hint">(٢ إلى ٥ أحرف)</span></label>
+          <input type="text" id="fTicker" class="num" maxlength="5" value="GLD" placeholder="GLD">
+        </div>
+        <div class="field">
+          <label>الشعار</label>
+          <div id="glyphGrid" class="glyph-grid"></div>
+        </div>
+        <div class="field">
+          <label>لون المعدن</label>
+          <div id="swatches" class="swatches"></div>
+        </div>
+        <div class="field">
+          <label for="fSupply">الإمداد الكلّي <span class="hint">(عدد العملات)</span></label>
+          <input type="number" id="fSupply" class="num" min="1000" step="1000" value="21000000">
+        </div>
+        <div class="field">
+          <label for="fPrice">السعر الابتدائي <span class="hint">(بالدولار)</span></label>
+          <input type="number" id="fPrice" class="num" min="0.0001" step="0.01" value="1.00">
+        </div>
+        <button id="mintBtn" class="btn btn-primary">🪙 اسكك العملة وابدأ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MINE ===== -->
+  <section id="tab-mine" class="panel">
+    <p class="eyebrow">إثبات العمل</p>
+    <h2 class="sec-title">التعدين</h2>
+    <p class="sec-note">التعدين يعني تجربة أرقام كثيرة (تُسمّى «nonce») حتى نجد رقمًا يجعل بصمة الكتلة تبدأ بعدد من الأصفار. أول من يجدها يضيف الكتلة ويأخذ المكافأة.</p>
+
+    <div class="gate">
+      <div class="g-emoji">🪙</div>
+      <p>لم تسكّ عملتك بعد. أنشئ عملتك أولًا ثم عُد للتعدين.</p>
+      <button class="btn btn-ghost go-create">اذهب إلى الإنشاء</button>
+    </div>
+
+    <div class="needs-coin">
+      <div class="card">
+        <div class="diff-row">
+          <span style="font-weight:600; font-size:.88rem; color:var(--ink-soft)">الصعوبة (عدد الأصفار):</span>
+          <div class="diff-pills" id="diffPills"></div>
+          <span class="mono" style="font-size:.76rem; color:var(--muted)" id="diffHint"></span>
+        </div>
+
+        <div class="block-preview">
+          <div><span class="k">block   :</span> #<span id="mpIndex">1</span></div>
+          <div><span class="k">prev    :</span> <span id="mpPrev">—</span></div>
+          <div><span class="k">data    :</span> مكافأة التعدين</div>
+          <div><span class="k">target  :</span> <span class="target" id="mpTarget">000…</span></div>
+          <div><span class="k">nonce   :</span> <span id="mpNonce">0</span></div>
+          <div><span class="k">hash    :</span> <span class="hash-live" id="mpHash">—</span></div>
+        </div>
+
+        <div class="mine-readout">
+          <div class="stat"><div class="s-label">المحاولات</div><div class="s-value" id="mAttempts" dir="ltr">0</div></div>
+          <div class="stat"><div class="s-label">السرعة (تجزئة/ث)</div><div class="s-value" id="mRate" dir="ltr">0</div></div>
+          <div class="stat"><div class="s-label">مكافأة الكتلة</div><div class="s-value" id="mReward" dir="ltr">50</div></div>
+        </div>
+
+        <div class="mine-msg" id="mineMsg"></div>
+
+        <div class="btn-row" style="margin-top:14px">
+          <button id="mineBtn" class="btn btn-primary" style="width:auto; flex:1">⛏️ ابدأ التعدين</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CHAIN ===== -->
+  <section id="tab-chain" class="panel">
+    <p class="eyebrow">سلسلة الكتل</p>
+    <h2 class="sec-title">البلوكشين</h2>
+    <p class="sec-note">كل كتلة تحمل بصمة الكتلة السابقة، فتترابط كالسلسلة. جرّب تغيير بيانات أي كتلة: ستنكسر بصمتها وكل ما بعدها، وهكذا يصعب التلاعب. اضغط «أصلح السلسلة» لإعادة التعدين.</p>
+
+    <div class="gate">
+      <div class="g-emoji">⛓️</div>
+      <p>لا توجد سلسلة بعد. أنشئ عملتك لتُولد كتلة التكوين.</p>
+      <button class="btn btn-ghost go-create">اذهب إلى الإنشاء</button>
+    </div>
+
+    <div class="needs-coin">
+      <div class="card">
+        <div id="chainStatus" style="font-size:.9rem; margin-bottom:10px"></div>
+        <div id="chainScroll" class="chain-scroll"></div>
+        <button id="fixBtn" class="btn btn-down btn-sm hidden" style="margin-top:6px">🔧 أصلح السلسلة</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TRADE ===== -->
+  <section id="tab-trade" class="panel">
+    <p class="eyebrow">السوق</p>
+    <h2 class="sec-title">التداول</h2>
+    <p class="sec-note">السعر يتحرك مع العرض والطلب: الشراء يرفعه والبيع يخفضه، وتؤثر عليه أخبار السوق أيضًا. راقب محفظتك وقيمتها.</p>
+
+    <div class="gate">
+      <div class="g-emoji">📈</div>
+      <p>لا يوجد سوق بعد. أنشئ عملتك لتبدأ التداول.</p>
+      <button class="btn btn-ghost go-create">اذهب إلى الإنشاء</button>
+    </div>
+
+    <div class="needs-coin">
+      <div class="card">
+        <div class="stat-grid" style="margin-bottom:14px">
+          <div class="stat"><div class="s-label">السعر</div><div class="s-value" id="tPrice" dir="ltr">$0.00</div></div>
+          <div class="stat"><div class="s-label">التغيّر</div><div class="s-value" id="tChange" dir="ltr">0%</div></div>
+          <div class="stat"><div class="s-label">القيمة السوقية</div><div class="s-value" id="tMcap" dir="ltr">$0</div></div>
+          <div class="stat"><div class="s-label">رصيدك من العملة</div><div class="s-value" id="tCoins" dir="ltr">0</div></div>
+          <div class="stat"><div class="s-label">رصيدك النقدي</div><div class="s-value" id="tFiat" dir="ltr">$0</div></div>
+          <div class="stat"><div class="s-label">قيمة المحفظة</div><div class="s-value" id="tPort" dir="ltr">$0</div></div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="priceChart"></canvas>
+        </div>
+        <div class="pulse" id="pulse"></div>
+
+        <div class="trade-controls">
+          <div class="field" style="margin:0">
+            <label for="tAmount">الكمية</label>
+            <input type="number" id="tAmount" class="num" min="0" step="1" value="1000" placeholder="0">
+          </div>
+          <div class="unit-toggle" id="unitToggle">
+            <button data-unit="usd" class="on">دولار</button>
+            <button data-unit="coin">عملة</button>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:12px">
+          <button id="buyBtn" class="btn btn-up" style="flex:1">شراء</button>
+          <button id="sellBtn" class="btn btn-down" style="flex:1">بيع</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-ghost btn-sm quick" data-q="usd:100">شراء $١٠٠</button>
+          <button class="btn btn-ghost btn-sm quick" data-q="usd:1000">شراء $١٠٠٠</button>
+          <button class="btn btn-ghost btn-sm quick" data-q="sellhalf">بيع النصف</button>
+          <button class="btn btn-ghost btn-sm quick" data-q="sellall">بيع الكل</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LEARN ===== -->
+  <section id="tab-learn" class="panel">
+    <p class="eyebrow">المفاهيم</p>
+    <h2 class="sec-title">تعلّم العملات الرقمية</h2>
+    <p class="sec-note">شرح مبسّط لكل ما جرّبته في هذه الصفحة.</p>
+    <div id="learnList"></div>
+  </section>
+
+  <div class="foot">دار السكّ · محاكاة تعليمية · لا مال حقيقي · SHA‑256 حقيقي داخل المتصفح</div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   دار السكّ — cryptocurrency builder & simulator
+   Everything runs locally: real SHA-256, real proof-of-work,
+   a tamper-evident blockchain, and a supply/demand market.
+   No external libraries, no storage — state lives in memory.
+   ============================================================ */
+
+/* ---------- SHA-256 (compact, ASCII-in). We feed it UTF-8 bytes. ---------- */
+function sha256(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  var mp=Math.pow, maxWord=mp(2,32), i,j,result='';
+  var words=[], asciiBitLength=ascii.length*8;
+  var hash=sha256.h=sha256.h||[], k=sha256.k=sha256.k||[], primeCounter=k.length;
+  var isComposite={};
+  for(var candidate=2; primeCounter<64; candidate++){
+    if(!isComposite[candidate]){
+      for(i=0;i<313;i+=candidate){isComposite[i]=candidate;}
+      hash[primeCounter]=(mp(candidate,.5)*maxWord)|0;
+      k[primeCounter++]=(mp(candidate,1/3)*maxWord)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56) ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    j=ascii.charCodeAt(i);
+    if(j>>8) return;
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=((asciiBitLength/maxWord)|0);
+  words[words.length]=(asciiBitLength);
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16), oldHash=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15], w2=w[i-2];
+      var a=hash[0], e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);
+      hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++){hash[i]=(hash[i]+oldHash[i])|0;}
+  }
+  for(i=0;i<8;i++){
+    for(j=3;j+1;j--){
+      var b=(hash[i]>>(j*8))&255;
+      result+=((b<16)?0:'')+b.toString(16);
+    }
+  }
+  return result;
+}
+// turn any UTF-8 string into a byte-string the hasher accepts
+const utf8 = s => unescape(encodeURIComponent(String(s)));
+const hashBlock = b => sha256(utf8(b.index + b.previousHash + b.timestamp + b.data + b.nonce));
+
+/* ---------- Color helpers (build the metallic gradient from one hex) ---------- */
+function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255];}
+function rgbToHex(r,g,b){return '#'+[r,g,b].map(x=>Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join('');}
+function mix(hex,t,amt){const[r,g,b]=hexToRgb(hex);return rgbToHex(r+(t[0]-r)*amt,g+(t[1]-g)*amt,b+(t[2]-b)*amt);}
+const lighten=(h,a)=>mix(h,[255,255,255],a);
+const darken =(h,a)=>mix(h,[0,0,0],a);
+
+/* ---------- small utils ---------- */
+const $=id=>document.getElementById(id);
+const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const fmtInt=n=>Math.round(n).toLocaleString('en-US');
+function fmtCompact(n){
+  const a=Math.abs(n);
+  if(a>=1e12) return (n/1e12).toFixed(2)+'T';
+  if(a>=1e9)  return (n/1e9).toFixed(2)+'B';
+  if(a>=1e6)  return (n/1e6).toFixed(2)+'M';
+  if(a>=1e3)  return (n/1e3).toFixed(2)+'K';
+  return n.toFixed(0);
+}
+function fmtPrice(p){
+  if(p>=1) return '$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '$'+p.toLocaleString('en-US',{minimumFractionDigits:4,maximumFractionDigits:4});
+}
+function fmtCoins(n){ return n>=1000 ? fmtCompact(n) : n.toLocaleString('en-US',{maximumFractionDigits:2}); }
+
+/* ---------- State ---------- */
+const BLOCK_REWARD = 50;                 // coins granted per mined block (echoes early Bitcoin)
+const GENESIS_PREV = '0'.repeat(64);
+const state = {
+  minted:false,
+  mining:false,
+  difficulty:3,
+  coin:{ name:'عملة الذهب', ticker:'GLD', glyph:'◈', color:'#c6912e', supply:21000000, price:1, initialPrice:1 },
+  wallet:{ coins:0, fiat:10000 },
+  circulating:0,
+  chain:[],
+  priceHistory:[],
+  tradeUnit:'usd',
+};
+
+/* ---------- Coin medallion (SVG) built from current identity ---------- */
+function rosettePath(cx,cy,R,k,amp){
+  let d='';
+  for(let i=0;i<=360;i++){
+    const a=i*Math.PI/180, r=R+amp*Math.cos(k*a);
+    d+=(i===0?'M':'L')+(cx+r*Math.cos(a)).toFixed(1)+' '+(cy+r*Math.sin(a)).toFixed(1)+' ';
+  }
+  return d+'Z';
+}
+function coinSVG(coin){
+  const c=coin.color;
+  const light=lighten(c,.58), mid=c, dark=darken(c,.40);
+  const faceLo=lighten(c,.30), faceHi=darken(c,.06);
+  const engrave=darken(c,.30), line=darken(c,.22);
+  const rose=rosettePath(100,100,42,7,4);
+  const name=(coin.name||'عملتك').slice(0,22);
+  const ticker=(coin.ticker||'COIN').toUpperCase();
+  const glyph=coin.glyph||'◈';
+  return `
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escapeHtml(name)}">
+    <defs>
+      <radialGradient id="mtl" cx="38%" cy="32%" r="78%">
+        <stop offset="0%" stop-color="${light}"/><stop offset="52%" stop-color="${mid}"/><stop offset="100%" stop-color="${dark}"/>
+      </radialGradient>
+      <linearGradient id="fce" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${faceLo}"/><stop offset="100%" stop-color="${faceHi}"/>
+      </linearGradient>
+      <path id="arcTop" d="M 44 100 A 56 56 0 0 1 156 100" fill="none"/>
+      <path id="arcBot" d="M 46 108 A 54 54 0 0 0 154 108" fill="none"/>
+    </defs>
+    <circle cx="100" cy="100" r="96" fill="url(#mtl)" stroke="${dark}" stroke-width="2"/>
+    <circle cx="100" cy="100" r="82" fill="url(#fce)" stroke="${darken(c,.18)}" stroke-width="1.4"/>
+    <path d="${rose}" fill="none" stroke="${engrave}" stroke-width=".6" opacity=".45"/>
+    <circle cx="100" cy="100" r="62" fill="none" stroke="${line}" stroke-width="1" opacity=".55"/>
+    <text font-family="Amiri, serif" font-weight="700" font-size="13" letter-spacing="1" fill="${darken(c,.5)}">
+      <textPath href="#arcTop" startOffset="50%" text-anchor="middle">${escapeHtml(name)}</textPath>
+    </text>
+    <text font-family="'IBM Plex Mono', monospace" font-weight="600" font-size="10" letter-spacing="3" fill="${darken(c,.5)}">
+      <textPath href="#arcBot" startOffset="50%" text-anchor="middle">${escapeHtml(ticker)} • ٢٠٢٦</textPath>
+    </text>
+    <text x="100" y="122" text-anchor="middle" font-size="58" fill="${darken(c,.5)}">${escapeHtml(glyph)}</text>
+    <ellipse cx="74" cy="64" rx="42" ry="24" fill="#ffffff" opacity=".16"/>
+  </svg>`;
+}
+function renderCoins(stamp){
+  const big=$('coinBig');
+  big.innerHTML=coinSVG(state.coin);
+  if(stamp){ big.classList.remove('stamp'); void big.offsetWidth; big.classList.add('stamp'); }
+  $('headerCoin').innerHTML=coinSVG(state.coin);
+}
+
+/* ---------- CSS accent variables from the coin color ---------- */
+function applyAccent(c){
+  const r=document.documentElement.style;
+  r.setProperty('--accent',c);
+  r.setProperty('--accent-d',darken(c,.34));
+  r.setProperty('--accent-l',lighten(c,.55));
+}
+
+/* ---------- Build the create-form pickers ---------- */
+const GLYPHS=['◈','◆','⬡','⬢','★','✦','⚡','●','▲','♦','◎','₿','Ξ','⛏','🪙','💎','🚀','🌙','🔥','🦊','⚙','☀','🛡','🌐'];
+const COLORS=['#c6912e','#1f7a6b','#5b3e96','#b23a48','#2c5f9e','#2e8b57','#8a8f98','#d98a2b','#a63a7a','#3e4c59'];
+function buildPickers(){
+  const gg=$('glyphGrid');
+  gg.innerHTML=GLYPHS.map(g=>`<button type="button" class="glyph-btn${g===state.coin.glyph?' sel':''}" data-g="${escapeHtml(g)}">${escapeHtml(g)}</button>`).join('');
+  gg.querySelectorAll('.glyph-btn').forEach(b=>b.onclick=()=>{
+    state.coin.glyph=b.dataset.g;
+    gg.querySelectorAll('.glyph-btn').forEach(x=>x.classList.toggle('sel',x===b));
+    renderCoins(false); updateCreatePreview();
+  });
+
+  const sw=$('swatches');
+  sw.innerHTML=COLORS.map(c=>`<button type="button" class="swatch${c===state.coin.color?' sel':''}" data-c="${c}" style="background:${c}"></button>`).join('')
+    +`<label class="swatch custom" title="لون مخصّص"><input type="color" id="customColor" value="${state.coin.color}"></label>`;
+  sw.querySelectorAll('.swatch[data-c]').forEach(b=>b.onclick=()=>selectColor(b.dataset.c,b));
+  $('customColor').oninput=e=>selectColor(e.target.value,null);
+}
+function selectColor(c,btn){
+  state.coin.color=c; applyAccent(c);
+  document.querySelectorAll('.swatch[data-c]').forEach(x=>x.classList.toggle('sel',x===btn));
+  renderCoins(false); updateCreatePreview();
+}
+
+/* ---------- Create: live preview binding ---------- */
+function updateCreatePreview(){
+  const p=parseFloat($('fPrice').value)||0;
+  $('coinCaption').textContent=state.coin.name||'عملتك';
+  $('coinSubcap').textContent=(state.coin.ticker||'TICKER')+' · '+fmtPrice(p);
+}
+function bindCreateInputs(){
+  $('fName').addEventListener('input',e=>{ state.coin.name=e.target.value.trim()||''; renderCoins(false); updateCreatePreview(); });
+  $('fTicker').addEventListener('input',e=>{
+    let v=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);
+    e.target.value=v; state.coin.ticker=v||''; renderCoins(false); updateCreatePreview();
+  });
+  $('fPrice').addEventListener('input',updateCreatePreview);
+}
+
+/* ---------- Minting ---------- */
+function mintCoin(){
+  const name=$('fName').value.trim()||'عملة';
+  let ticker=$('fTicker').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5)||'COIN';
+  if(ticker.length<2) ticker=(ticker+'X').slice(0,3);
+  let supply=Math.floor(parseFloat($('fSupply').value)||0);
+  let price=parseFloat($('fPrice').value)||0;
+  if(supply<1000){ supply=1000; $('fSupply').value=supply; }
+  if(price<0.0001){ price=0.0001; $('fPrice').value=price; }
+
+  state.coin.name=name; state.coin.ticker=ticker; state.coin.supply=supply;
+  state.coin.price=price; state.coin.initialPrice=price;
+  applyAccent(state.coin.color);
+
+  // economy
+  state.wallet={coins:0, fiat:10000};
+  state.circulating=Math.floor(supply*0.10);          // initial float in circulation
+  state.priceHistory=Array.from({length:8},()=>price); // seed the chart
+  // genesis block (mined so it also carries valid proof of work)
+  const genesis={index:0, timestamp:Date.now(), data:'كتلة التكوين', previousHash:GENESIS_PREV, nonce:0, difficulty:state.difficulty};
+  mineNonceSync(genesis, state.difficulty);
+  state.chain=[genesis];
+
+  state.minted=true;
+  document.body.classList.add('minted');
+  renderCoins(true);
+  refreshHeader();
+  renderMinePanel();
+  renderChain();
+  renderTrade();
+  startMarket();
+
+  // celebrate: jump to the trading floor
+  setTimeout(()=>switchTab('trade'),450);
+}
+
+/* ---------- Header ---------- */
+function refreshHeader(){
+  $('hdrName').textContent=state.coin.name;
+  $('hdrTicker').textContent=state.coin.ticker+' · إمداد '+fmtCompact(state.coin.supply);
+  if(state.minted){
+    $('hdrPrice').classList.remove('hidden');
+    $('hdrPriceVal').textContent=fmtPrice(state.coin.price);
+    const chg=(state.coin.price/state.coin.initialPrice-1)*100;
+    const el=$('hdrPriceChg');
+    el.textContent=(chg>=0?'▲ +':'▼ ')+chg.toFixed(2)+'%';
+    el.className='pp-chg mono '+(chg>=0?'up-txt':'down-txt');
+  }
+}
+
+/* ============================================================
+   MINING
+   ============================================================ */
+function targetString(d){ return '0'.repeat(d); }
+function mineNonceSync(block, difficulty){
+  const target=targetString(difficulty);
+  block.nonce=0;
+  while(true){
+    const h=hashBlock(block);
+    if(h.slice(0,difficulty)===target){ block.hash=h; return h; }
+    block.nonce++;
+  }
+}
+function renderMinePanel(){
+  buildDiffPills();
+  const prev=state.chain.length?state.chain[state.chain.length-1]:null;
+  $('mpIndex').textContent=prev?prev.index+1:1;
+  $('mpPrev').textContent=prev?prev.hash.slice(0,20)+'…':'—';
+  $('mpTarget').textContent=targetString(state.difficulty)+'…';
+  $('mpNonce').textContent='0';
+  $('mpHash').textContent='—'; $('mpHash').className='hash-live';
+  $('mReward').textContent=fmtInt(BLOCK_REWARD);
+  $('mAttempts').textContent='0';
+  $('mRate').textContent='0';
+}
+function buildDiffPills(){
+  const box=$('diffPills');
+  box.innerHTML=[1,2,3,4].map(d=>`<button class="diff-pill${d===state.difficulty?' on':''}" data-d="${d}">${d}</button>`).join('');
+  box.querySelectorAll('.diff-pill').forEach(b=>b.onclick=()=>{
+    if(state.mining) return;
+    state.difficulty=parseInt(b.dataset.d);
+    buildDiffPills(); renderMinePanel(); updateDiffHint();
+  });
+  updateDiffHint();
+}
+function updateDiffHint(){
+  const map={1:'سهل جدًا',2:'سهل',3:'متوسط',4:'صعب — قد يستغرق بضع ثوانٍ'};
+  $('diffHint').textContent=map[state.difficulty]||'';
+}
+function startMining(){
+  if(!state.minted) return;
+  if(state.mining){ stopMining(); return; }
+  state.mining=true;
+  $('mineBtn').textContent='⏹️ إيقاف';
+  $('mineMsg').textContent=''; $('mineMsg').style.color='';
+  const prev=state.chain[state.chain.length-1];
+  const block={index:prev.index+1, timestamp:Date.now(), data:'مكافأة التعدين', previousHash:prev.hash, nonce:0, difficulty:state.difficulty};
+  const target=targetString(state.difficulty);
+  let attempts=0; const t0=performance.now(); let lastHash='';
+  $('mpIndex').textContent=block.index;
+  $('mpPrev').textContent=block.previousHash.slice(0,20)+'…';
+  $('mpTarget').textContent=target+'…';
+
+  function step(){
+    if(!state.mining){ return; }
+    const batch=1800;
+    for(let i=0;i<batch;i++){
+      lastHash=hashBlock(block);
+      attempts++;
+      if(lastHash.slice(0,state.difficulty)===target){ return success(block,lastHash,attempts,t0); }
+      block.nonce++;
+    }
+    const secs=(performance.now()-t0)/1000;
+    $('mpNonce').textContent=fmtInt(block.nonce);
+    $('mpHash').textContent=lastHash.slice(0,40)+'…';
+    $('mAttempts').textContent=fmtInt(attempts);
+    $('mRate').textContent=fmtInt(attempts/Math.max(secs,0.001));
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function stopMining(){
+  state.mining=false;
+  $('mineBtn').textContent='⛏️ ابدأ التعدين';
+}
+function success(block, hash, attempts, t0){
+  state.mining=false;
+  $('mineBtn').textContent='⛏️ ابدأ التعدين';
+  const secs=((performance.now()-t0)/1000);
+  block.hash=hash;
+  state.chain.push(block);
+  // reward enters your wallet and the circulating supply
+  state.wallet.coins+=BLOCK_REWARD;
+  state.circulating=Math.min(state.coin.supply, state.circulating+BLOCK_REWARD);
+
+  $('mpNonce').textContent=fmtInt(block.nonce);
+  $('mpHash').innerHTML='<span class="hash-good">'+hash+'</span>';
+  $('mAttempts').textContent=fmtInt(attempts);
+  $('mRate').textContent=fmtInt(attempts/Math.max(secs,0.001));
+  const msg=$('mineMsg');
+  msg.style.color='var(--up)';
+  msg.textContent=`✅ تم إيجاد الكتلة #${block.index} بعد ${fmtInt(attempts)} محاولة في ${secs.toFixed(2)} ثانية. حصلت على ${fmtInt(BLOCK_REWARD)} ${state.coin.ticker}.`;
+  renderChain();
+  renderTrade();
+  refreshHeader();
+}
+
+/* ============================================================
+   BLOCKCHAIN VIEW (tamper-evident)
+   ============================================================ */
+function chainValidity(){
+  // each block is judged against the difficulty it was mined at, and its link to the prior block
+  return state.chain.map((b,i)=>{
+    const d=b.difficulty||state.difficulty;
+    const powOK = !!b.hash && b.hash.slice(0,d)==='0'.repeat(d);
+    const linkOK = i===0 ? b.previousHash===GENESIS_PREV : b.previousHash===state.chain[i-1].hash;
+    return powOK && linkOK;
+  });
+}
+function renderChain(){
+  const box=$('chainScroll');
+  box.innerHTML='';
+  state.chain.forEach((b,i)=>{
+    if(i>0){
+      const link=document.createElement('div');
+      link.className='block-link'; link.dataset.link=i; link.textContent='⛓';
+      box.appendChild(link);
+    }
+    const card=document.createElement('div');
+    card.className='block-card'; card.dataset.idx=i;
+    card.innerHTML=`
+      <div class="bc-idx">كتلة #${b.index}<span class="bc-badge" data-badge>سليمة</span></div>
+      <div class="bc-row"><span class="kk">nonce:</span> <span class="mono" data-nonce>${fmtInt(b.nonce)}</span></div>
+      <div class="bc-row"><span class="kk">البيانات:</span></div>
+      <input class="bc-data" data-data value="${escapeHtml(b.data)}" ${i===0?'':''}>
+      <div class="bc-row" style="margin-top:8px"><span class="kk">بصمة السابقة:</span></div>
+      <div class="bc-hash" data-prev>${b.previousHash.slice(0,24)}…</div>
+      <div class="bc-row"><span class="kk">بصمة هذه الكتلة:</span></div>
+      <div class="bc-hash self" data-self>${b.hash.slice(0,24)}…</div>`;
+    box.appendChild(card);
+    // tamper handler — recompute this block's hash live, then re-validate the chain
+    card.querySelector('[data-data]').addEventListener('input',e=>{
+      state.chain[i].data=e.target.value;
+      state.chain[i].hash=hashBlock(state.chain[i]);
+      validateChainDOM();
+    });
+  });
+  validateChainDOM();
+}
+function validateChainDOM(){
+  const valid=chainValidity();
+  const anyBad=valid.some(v=>!v);
+  state.chain.forEach((b,i)=>{
+    const card=document.querySelector(`.block-card[data-idx="${i}"]`);
+    if(!card) return;
+    card.classList.toggle('invalid',!valid[i]);
+    card.querySelector('[data-self]').textContent=b.hash.slice(0,24)+'…';
+    card.querySelector('[data-nonce]').textContent=fmtInt(b.nonce);
+    const badge=card.querySelector('[data-badge]');
+    badge.textContent=valid[i]?'سليمة':'مكسورة';
+    badge.classList.toggle('bad',!valid[i]);
+    const link=document.querySelector(`.block-link[data-link="${i}"]`);
+    if(link) link.classList.toggle('broken', i>0 && b.previousHash!==state.chain[i-1].hash);
+  });
+  $('fixBtn').classList.toggle('hidden',!anyBad);
+  const st=$('chainStatus');
+  if(anyBad){ st.innerHTML='<span class="down-txt">⛓️‍💥 السلسلة مكسورة</span> — تغيّرت بيانات كتلة فاختلّت بصمتها والروابط بعدها.'; }
+  else { st.innerHTML=`<span class="up-txt">✔ السلسلة سليمة</span> — عدد الكتل: <span class="mono" dir="ltr">${state.chain.length}</span>`; }
+}
+function fixChain(){
+  const valid=chainValidity();
+  let first=valid.findIndex(v=>!v);
+  if(first<0) return;
+  const btn=$('fixBtn'); btn.disabled=true; btn.textContent='… جارٍ إعادة التعدين';
+  $('chainStatus').innerHTML='<span style="color:var(--muted)">🔧 يُعاد تعدين الكتل المكسورة…</span>';
+  // yield once so the message paints before the (synchronous) re-mining runs
+  setTimeout(()=>{
+    for(let i=first;i<state.chain.length;i++){
+      state.chain[i].previousHash = i===0 ? GENESIS_PREV : state.chain[i-1].hash;
+      mineNonceSync(state.chain[i], state.chain[i].difficulty||state.difficulty);
+    }
+    btn.disabled=false; btn.textContent='🔧 أصلح السلسلة';
+    renderChain();
+  },40);
+}
+
+/* ============================================================
+   MARKET / TRADING
+   ============================================================ */
+let marketTimer=null, eventTimer=null;
+function startMarket(){
+  if(marketTimer) return;
+  marketTimer=setInterval(marketTick,1500);
+  eventTimer=setInterval(maybeEvent,7000);
+}
+function gauss(){ return (Math.random()+Math.random()+Math.random()-1.5)/1.5; } // ~N(0,1)-ish
+function marketTick(){
+  // ambient random walk with a tiny upward drift
+  const vol=0.012;
+  let p=state.coin.price*(1 + gauss()*vol + 0.0006);
+  state.coin.price=Math.max(0.0001,p);
+  pushPrice();
+  renderTrade(); refreshHeader();
+}
+const EVENTS=[
+  ['📈 دخول مستثمرين جدد رفع الطلب', +1, 0.05],
+  ['📰 خبر إيجابي عن المشروع', +1, 0.04],
+  ['🤝 شراكة جديدة أُعلنت', +1, 0.06],
+  ['📉 موجة بيع من كبار الحائزين', -1, 0.05],
+  ['⚠️ شائعة سلبية في السوق', -1, 0.06],
+  ['🏦 تشديد تنظيمي محتمل', -1, 0.04],
+];
+function maybeEvent(){
+  if(Math.random()<0.45){
+    const [msg,dir,mag]=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+    state.coin.price=Math.max(0.0001, state.coin.price*(1+dir*mag));
+    pushPrice(); renderTrade(); refreshHeader();
+    const el=$('pulse'); el.textContent=msg; el.classList.add('show');
+    clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),3400);
+  }
+}
+function pushPrice(){
+  state.priceHistory.push(state.coin.price);
+  if(state.priceHistory.length>160) state.priceHistory.shift();
+  drawChart();
+}
+function marketDepth(){ return Math.max(state.circulating*state.coin.price*0.04, 5000); }
+function applyImpact(signedUSD){
+  let f=signedUSD/marketDepth();
+  f=clamp(f*0.6,-0.25,0.25);
+  state.coin.price=Math.max(0.0001, state.coin.price*(1+f));
+}
+function buyUSD(usd){
+  usd=Math.min(usd, state.wallet.fiat);
+  if(usd<=0){ flashPulse('لا يوجد رصيد نقدي كافٍ'); return; }
+  const coins=usd/state.coin.price;
+  state.wallet.fiat-=usd; state.wallet.coins+=coins;
+  applyImpact(+usd); pushPrice(); renderTrade(); refreshHeader();
+}
+function sellCoins(coins){
+  coins=Math.min(coins, state.wallet.coins);
+  if(coins<=0){ flashPulse('لا تملك عملات للبيع'); return; }
+  const usd=coins*state.coin.price;
+  state.wallet.coins-=coins; state.wallet.fiat+=usd;
+  applyImpact(-usd); pushPrice(); renderTrade(); refreshHeader();
+}
+function flashPulse(msg){
+  const el=$('pulse'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2600);
+}
+function renderTrade(){
+  const c=state.coin, w=state.wallet;
+  const chg=(c.price/c.initialPrice-1)*100;
+  const mcap=c.price*state.circulating;
+  const port=w.fiat + w.coins*c.price;
+  $('tPrice').textContent=fmtPrice(c.price);
+  const ch=$('tChange');
+  ch.textContent=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+  ch.className='s-value '+(chg>=0?'up-txt':'down-txt');
+  $('tMcap').textContent='$'+fmtCompact(mcap);
+  $('tCoins').textContent=fmtCoins(w.coins)+' '+c.ticker;
+  $('tFiat').textContent='$'+fmtInt(w.fiat);
+  $('tPort').textContent='$'+fmtCompact(port);
+}
+
+/* ---------- Canvas price chart (drawn by hand, no library) ---------- */
+function drawChart(){
+  const cv=$('priceChart'); if(!cv) return;
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth, h=cv.clientHeight;
+  if(!w||!h) return;
+  cv.width=w*dpr; cv.height=h*dpr;
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  const data=state.priceHistory; if(data.length<2) return;
+  const pad={l:8,r:52,t:12,b:10};
+  const min=Math.min(...data), max=Math.max(...data);
+  const range=(max-min)||max*0.02||1;
+  const lo=min-range*0.12, hi=max+range*0.12;
+  const X=i=> pad.l + (w-pad.l-pad.r)*(i/(data.length-1));
+  const Y=v=> pad.t + (h-pad.t-pad.b)*(1-(v-lo)/(hi-lo));
+  const css=getComputedStyle(document.documentElement);
+  const ink=css.getPropertyValue('--line-strong').trim()||'#b7b29b';
+  const up=css.getPropertyValue('--up').trim(), down=css.getPropertyValue('--down').trim();
+  const accent=css.getPropertyValue('--accent').trim();
+  const rising=data[data.length-1]>=data[0];
+  const stroke=rising?up:down;
+
+  // gridlines + right-side labels
+  ctx.font="10px 'IBM Plex Mono', monospace"; ctx.textBaseline='middle';
+  ctx.strokeStyle=ink; ctx.fillStyle='#8a8b7c'; ctx.lineWidth=1;
+  for(let g=0; g<=3; g++){
+    const v=lo+(hi-lo)*g/3, y=Y(v);
+    ctx.globalAlpha=.35; ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(w-pad.r,y); ctx.stroke();
+    ctx.globalAlpha=1; ctx.fillText(fmtPrice(v), w-pad.r+6, y);
+  }
+  // area fill
+  ctx.beginPath(); ctx.moveTo(X(0),Y(data[0]));
+  for(let i=1;i<data.length;i++) ctx.lineTo(X(i),Y(data[i]));
+  ctx.lineTo(X(data.length-1),h-pad.b); ctx.lineTo(X(0),h-pad.b); ctx.closePath();
+  const grad=ctx.createLinearGradient(0,pad.t,0,h);
+  grad.addColorStop(0, hexA(stroke,.18)); grad.addColorStop(1, hexA(stroke,0));
+  ctx.fillStyle=grad; ctx.fill();
+  // line
+  ctx.beginPath(); ctx.moveTo(X(0),Y(data[0]));
+  for(let i=1;i<data.length;i++) ctx.lineTo(X(i),Y(data[i]));
+  ctx.strokeStyle=stroke; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+  // last dot
+  const lx=X(data.length-1), ly=Y(data[data.length-1]);
+  ctx.beginPath(); ctx.arc(lx,ly,3.4,0,7); ctx.fillStyle=stroke; ctx.fill();
+  ctx.beginPath(); ctx.arc(lx,ly,6.5,0,7); ctx.strokeStyle=hexA(stroke,.35); ctx.lineWidth=2; ctx.stroke();
+}
+function hexA(hex,a){const[r,g,b]=hexToRgb(hex.trim());return `rgba(${r},${g},${b},${a})`;}
+
+/* ---------- Trading UI wiring ---------- */
+function amountToUSDandCoins(){
+  const amt=parseFloat($('tAmount').value)||0;
+  if(state.tradeUnit==='usd') return {usd:amt, coins:amt/state.coin.price};
+  return {usd:amt*state.coin.price, coins:amt};
+}
+function wireTrade(){
+  $('unitToggle').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    state.tradeUnit=b.dataset.unit;
+    $('unitToggle').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  });
+  $('buyBtn').onclick=()=>{ const {usd}=amountToUSDandCoins(); buyUSD(usd); };
+  $('sellBtn').onclick=()=>{ const {coins}=amountToUSDandCoins(); sellCoins(coins); };
+  document.querySelectorAll('.quick').forEach(b=>b.onclick=()=>{
+    const q=b.dataset.q;
+    if(q==='sellall') sellCoins(state.wallet.coins);
+    else if(q==='sellhalf') sellCoins(state.wallet.coins/2);
+    else if(q.startsWith('usd:')) buyUSD(parseFloat(q.split(':')[1]));
+  });
+}
+
+/* ============================================================
+   LEARN
+   ============================================================ */
+const LEARN=[
+  ['🪙','ما هي العملة الرقمية؟',
+    `<p>العملة الرقمية هي نقود موجودة على شكل سجلّ إلكتروني فقط، بلا أوراق ولا معدن. ما يميّزها أنها غالبًا <strong>لا مركزية</strong>: لا يتحكّم بها بنك أو حكومة واحدة، بل شبكة من الأجهزة حول العالم تتفق على من يملك ماذا.</p>
+     <p>عندما «سككت» عملتك هنا، حدّدت اسمها ورمزها وإمدادها الكلّي — وهذه هي أساسيات أي عملة.</p>`],
+  ['⛓️','البلوكشين (سلسلة الكتل)',
+    `<p>البلوكشين دفتر حسابات مشترك مقسّم إلى <strong>كتل</strong>. كل كتلة تسجّل مجموعة عمليات، وتحمل «بصمة» الكتلة التي قبلها.</p>
+     <p>لأن كل كتلة مربوطة بالسابقة، فأي تعديل في كتلة قديمة يُفسد بصمتها وكل ما بعدها — وهذا ما جرّبته في تبويب «السلسلة». الترابط هو ما يجعل التزوير مكشوفًا.</p>`],
+  ['⛏️','التعدين وإثبات العمل',
+    `<p>لإضافة كتلة جديدة، يجب حلّ لغز حسابي: إيجاد رقم (nonce) يجعل بصمة الكتلة تبدأ بعدد معيّن من <strong>الأصفار</strong>. لا حلّ إلا بالتجربة، وهذا يسمّى <strong>إثبات العمل</strong> (Proof of Work).</p>
+     <p>كل ما زادت الصعوبة، زاد عدد الأصفار المطلوبة وزادت المحاولات. من يجد الحلّ أولًا يأخذ <strong>مكافأة الكتلة</strong> — وهكذا تدخل عملات جديدة للتداول.</p>`],
+  ['👛','المحفظة والمفاتيح',
+    `<p>المحفظة زوج من المفاتيح: <strong>مفتاح عام</strong> يشبه رقم حسابك يشاركه الجميع لإرسال المال إليك، و<strong>مفتاح خاص</strong> سرّي يوقّع به عملياتك ويثبت ملكيتك.</p>
+     <p>من يملك المفتاح الخاص يملك العملات. لذلك تُقال العبارة الشهيرة: «إن لم تملك مفاتيحك، فلا تملك عملاتك».</p>`],
+  ['🌐','اللامركزية',
+    `<p>بدل خادم واحد يحفظ السجلّ، تحتفظ آلاف الأجهزة بنسخة منه وتتفق عبر قواعد مشتركة (إجماع). فلا نقطة تحكّم واحدة يمكن إغلاقها أو تزويرها بسهولة.</p>
+     <p>هذا يمنح مقاومة للرقابة وشفافية، مقابل بطء أكبر واستهلاك طاقة في بعض الشبكات.</p>`],
+  ['📈','العرض والطلب والتقلّب',
+    `<p>سعر العملة يتحدّد بمن يريد الشراء مقابل من يريد البيع. زيادة الطلب ترفع السعر، وزيادة العرض أو البيع تخفضه — وهذا ما تراه في تبويب «التداول».</p>
+     <p>لأن السوق صغير وسريع التأثّر بالأخبار والمشاعر، تكون العملات الرقمية شديدة <strong>التقلّب</strong>: مكاسب وخسائر كبيرة في وقت قصير.</p>`],
+  ['💰','القيمة السوقية',
+    `<p>القيمة السوقية = <strong>السعر × عدد العملات المتداولة</strong>. تعطي فكرة عن الحجم الإجمالي للعملة، وهي أدقّ من السعر وحده للمقارنة بين العملات.</p>
+     <p>عملة سعرها منخفض قد تكون قيمتها السوقية ضخمة إن كان إمدادها كبيرًا، والعكس صحيح.</p>`],
+  ['🔒','ملاحظة أمان',
+    `<p>هذه صفحة تعليمية للمحاكاة فقط: لا مال حقيقي ولا شبكة فعلية. لكن المبادئ (البصمة، الترابط، إثبات العمل) حقيقية ونفس ما تقوم عليه الشبكات الفعلية.</p>
+     <p>في العالم الحقيقي، احذر الاحتيال، ولا تشارك مفتاحك الخاص أبدًا، ولا تستثمر إلا ما تتحمّل خسارته.</p>`],
+];
+function renderLearn(){
+  const box=$('learnList');
+  box.innerHTML=LEARN.map(([ico,title,body])=>`
+    <div class="acc">
+      <button class="acc-head"><span class="a-ico">${ico}</span><span>${title}</span><span class="a-arrow">◂</span></button>
+      <div class="acc-body"><div class="inner">${body}</div></div>
+    </div>`).join('');
+  box.querySelectorAll('.acc-head').forEach(h=>h.onclick=()=>{
+    const acc=h.parentElement, body=acc.querySelector('.acc-body');
+    const open=acc.classList.toggle('open');
+    body.style.maxHeight=open?body.firstElementChild.scrollHeight+24+'px':'0';
+  });
+}
+
+/* ============================================================
+   TABS + INIT
+   ============================================================ */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+name));
+  if(name==='trade') requestAnimationFrame(drawChart);
+  if(name==='mine' && !state.mining) renderMinePanel();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function init(){
+  applyAccent(state.coin.color);
+  buildPickers();
+  bindCreateInputs();
+  renderCoins(false);
+  updateCreatePreview();
+  refreshHeader();
+  renderLearn();
+  buildDiffPills();
+  wireTrade();
+
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
+  document.querySelectorAll('.go-create').forEach(b=>b.onclick=()=>switchTab('create'));
+  $('mintBtn').onclick=mintCoin;
+  $('mineBtn').onclick=startMining;
+  $('fixBtn').onclick=fixChain;
+  window.addEventListener('resize',()=>{ if($('tab-trade').classList.contains('active')) drawChart(); });
+}
+init();
+</script>
+</body>
+</html>
